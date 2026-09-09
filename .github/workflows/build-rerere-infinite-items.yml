@@ -1,0 +1,96 @@
+name: Build Re-ReARPD Infinite Items APK
+
+on:
+  push:
+    branches:
+      - chatgpt-rerere-apk-build
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out runner repo
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clone exact Re-ReARranged v3.47.0 source
+        run: |
+          git clone --depth 1 --branch v3.47.0 https://github.com/ek-mk8034/Re-Re-ARranged-pixel-dungeon.git game
+
+      - name: Add the two infinite items
+        env:
+          PROVISION_B64: cGFja2FnZSBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLmN1c3RvbTsKCmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLkFzc2V0czsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uQmFkZ2VzOwppbXBvcnQgY29tLnNoYXR0ZXJlZHBpeGVsLnNoYXR0ZXJlZHBpeGVsZHVuZ2Vvbi5hY3RvcnMuYnVmZnMuQnVmZjsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uYWN0b3JzLmJ1ZmZzLkh1bmdlcjsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uYWN0b3JzLmhlcm8uSGVybzsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uZWZmZWN0cy5GbG9hdGluZ1RleHQ7CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLmVmZmVjdHMuU3BlbGxTcHJpdGU7CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLkl0ZW07CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLmZvb2QuRm9vZDsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uaXRlbXMuc2Nyb2xscy5TY3JvbGxPZlJlbW92ZUN1cnNlOwppbXBvcnQgY29tLnNoYXR0ZXJlZHBpeGVsLnNoYXR0ZXJlZHBpeGVsZHVuZ2Vvbi5zcHJpdGVzLkNoYXJTcHJpdGU7CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLnNwcml0ZXMuSXRlbVNwcml0ZVNoZWV0OwppbXBvcnQgY29tLnNoYXR0ZXJlZHBpeGVsLnNoYXR0ZXJlZHBpeGVsZHVuZ2Vvbi51dGlscy5HTG9nOwppbXBvcnQgY29tLndhdGFib3Uubm9vc2EuYXVkaW8uU2FtcGxlOwoKaW1wb3J0IGphdmEudXRpbC5BcnJheUxpc3Q7CgpwdWJsaWMgY2xhc3MgRW5kbGVzc1Byb3Zpc2lvbiBleHRlbmRzIEl0ZW0gewoKICAgIHB1YmxpYyBzdGF0aWMgZmluYWwgU3RyaW5nIEFDX1JFU1RPUkUgPSAiUkVTVE9SRSI7CiAgICBwdWJsaWMgc3RhdGljIGZpbmFsIFN0cmluZyBBQ19FTVBPV0VSID0gIkVNUE9XRVIiOwoKICAgIHsKICAgICAgICBpbWFnZSA9IEl0ZW1TcHJpdGVTaGVldC5SQVRJT047CiAgICAgICAgc3RhY2thYmxlID0gZmFsc2U7CiAgICAgICAgdW5pcXVlID0gdHJ1ZTsKICAgICAgICBib25lcyA9IGZhbHNlOwogICAgICAgIGRlZmF1bHRBY3Rpb24gPSBBQ19SRVNUT1JFOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIEFycmF5TGlzdDxTdHJpbmc+IGFjdGlvbnMoSGVybyBoZXJvKSB7CiAgICAgICAgQXJyYXlMaXN0PFN0cmluZz4gYWN0aW9ucyA9IHN1cGVyLmFjdGlvbnMoaGVybyk7CiAgICAgICAgYWN0aW9ucy5hZGQoQUNfUkVTVE9SRSk7CiAgICAgICAgYWN0aW9ucy5hZGQoQUNfRU1QT1dFUik7CiAgICAgICAgcmV0dXJuIGFjdGlvbnM7CiAgICB9CgogICAgQE92ZXJyaWRlCiAgICBwdWJsaWMgU3RyaW5nIGFjdGlvbk5hbWUoU3RyaW5nIGFjdGlvbiwgSGVybyBoZXJvKSB7CiAgICAgICAgaWYgKEFDX1JFU1RPUkUuZXF1YWxzKGFjdGlvbikpIHJldHVybiAiUkVTVE9SRSI7CiAgICAgICAgaWYgKEFDX0VNUE9XRVIuZXF1YWxzKGFjdGlvbikpIHJldHVybiAiRU1QT1dFUiI7CiAgICAgICAgcmV0dXJuIHN1cGVyLmFjdGlvbk5hbWUoYWN0aW9uLCBoZXJvKTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyB2b2lkIGV4ZWN1dGUoSGVybyBoZXJvLCBTdHJpbmcgYWN0aW9uKSB7CiAgICAgICAgc3VwZXIuZXhlY3V0ZShoZXJvLCBhY3Rpb24pOwogICAgICAgIGlmIChBQ19SRVNUT1JFLmVxdWFscyhhY3Rpb24pIHx8IEFDX0VNUE9XRVIuZXF1YWxzKGFjdGlvbikpIHsKICAgICAgICAgICAgdXNlKGhlcm8sIEFDX0VNUE9XRVIuZXF1YWxzKGFjdGlvbikpOwogICAgICAgIH0KICAgIH0KCiAgICBwcml2YXRlIHZvaWQgdXNlKEhlcm8gaGVybywgYm9vbGVhbiBlbXBvd2VyKSB7CiAgICAgICAgLy8gQSBmdWxsIHJlc2V0IGZyb20gdGhlIG1heGltdW0gaHVuZ2VyIGxldmVsIGJhY2sgdG8gY29tcGxldGVseSBzYXRpYXRlZC4KICAgICAgICBCdWZmLmFmZmVjdChoZXJvLCBIdW5nZXIuY2xhc3MpLnNhdGlzZnkoSHVuZ2VyLlNUQVJWSU5HKTsKCiAgICAgICAgLy8gSWRlbnRpZnkgZXZlcnkgY2FycmllZC9lcXVpcHBlZCBpdGVtLCB0aGVuIHJlbW92ZSBjdXJzZXMgYW5kIGN1cnNlIGVuY2hhbnRzL2dseXBocy4KICAgICAgICBoZXJvLmJlbG9uZ2luZ3MuaWRlbnRpZnkoKTsKICAgICAgICBBcnJheUxpc3Q8SXRlbT4gaXRlbXMgPSBuZXcgQXJyYXlMaXN0PD4oKTsKICAgICAgICBmb3IgKEl0ZW0gaXRlbSA6IGhlcm8uYmVsb25naW5ncykgewogICAgICAgICAgICBpdGVtcy5hZGQoaXRlbSk7CiAgICAgICAgfQogICAgICAgIFNjcm9sbE9mUmVtb3ZlQ3Vyc2UudW5jdXJzZShoZXJvLCBpdGVtcy50b0FycmF5KG5ldyBJdGVtWzBdKSk7CgogICAgICAgIGlmIChlbXBvd2VyKSB7CiAgICAgICAgICAgIGhlcm8uU1RSKys7CiAgICAgICAgICAgIGhlcm8uc3ByaXRlLnNob3dTdGF0dXNXaXRoSWNvbihDaGFyU3ByaXRlLlBPU0lUSVZFICwgIjEiLCBGbG9hdGluZ1RleHQuU1RSRU5HVEgpOwogICAgICAgICAgICBCYWRnZXMudmFsaWRhdGVTdHJlbmd0aEF0dGFpbmVkKCk7CiAgICAgICAgICAgIEJhZGdlcy52YWxpZGF0ZUR1ZWxpc3RVbmxvY2soKTsKICAgICAgICAgICAgR0xvZy5wKCJUaGUgcHJvdmlzaW9uIHJlc3RvcmVzIHlvdSBjb21wbGV0ZWx5IGFuZCBwZXJtYW5lbnRseSBpbmNyZWFzZXMgeW91ciBTdHJlbmd0aCBieSAxLiIpOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIEdMb2cucCgiVGhlIHByb3Zpc2lvbiByZXN0b3JlcyB5b3VyIGh1bmdlciBhbmQgcHVyaWZpZXMgZXZlcnl0aGluZyB5b3UgY2FycnkuIik7CiAgICAgICAgfQoKICAgICAgICBTcGVsbFNwcml0ZS5zaG93KGhlcm8sIFNwZWxsU3ByaXRlLkZPT0QpOwogICAgICAgIFNhbXBsZS5JTlNUQU5DRS5wbGF5KEFzc2V0cy5Tb3VuZHMuRUFUKTsKICAgICAgICBoZXJvLnNwcml0ZS5vcGVyYXRlKGhlcm8ucG9zKTsKICAgICAgICBoZXJvLmJ1c3koKTsKICAgICAgICBoZXJvLnNwZW5kKEZvb2QuVElNRV9UT19FQVQpOwogICAgICAgIEl0ZW0udXBkYXRlUXVpY2tzbG90KCk7CiAgICB9CgogICAgQE92ZXJyaWRlCiAgICBwdWJsaWMgU3RyaW5nIG5hbWUoKSB7CiAgICAgICAgcmV0dXJuICJldmVyZnVsbCBwcm92aXNpb24iOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIFN0cmluZyBkZXNjKCkgewogICAgICAgIHJldHVybiAiQSBtYWdpY2FsbHkgc2VsZi1yZXN0b3JpbmcgcmF0aW9uIHRoYXQgY2FuIG5ldmVyIGJlIHVzZWQgdXAuIFJFU1RPUkUgY29tcGxldGVseSBzYXRpc2ZpZXMgaHVuZ2VyLCBpZGVudGlmaWVzIGV2ZXJ5IGl0ZW0geW91IGNhcnJ5LCBhbmQgY2xlYW5zZXMgY3Vyc2VzIGZyb20gYWxsIG9mIHRoZW0uIEVNUE9XRVIgZG9lcyBhbGwgb2YgdGhhdCBhbmQgYWxzbyBwZXJtYW5lbnRseSBpbmNyZWFzZXMgU3RyZW5ndGggYnkgMS4iOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIGJvb2xlYW4gaXNJZGVudGlmaWVkKCkgewogICAgICAgIHJldHVybiB0cnVlOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIGJvb2xlYW4gaXNVcGdyYWRhYmxlKCkgewogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyBib29sZWFuIGtlcHRUaHJvdWdoTG9zdEludmVudG9yeSgpIHsKICAgICAgICByZXR1cm4gdHJ1ZTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyBpbnQgdmFsdWUoKSB7CiAgICAgICAgcmV0dXJuIDA7CiAgICB9Cn0K
+          SCROLL_B64: cGFja2FnZSBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLmN1c3RvbTsKCmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLmFjdG9ycy5oZXJvLkhlcm87CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLkl0ZW07CmltcG9ydCBjb20uc2hhdHRlcmVkcGl4ZWwuc2hhdHRlcmVkcGl4ZWxkdW5nZW9uLml0ZW1zLnNjcm9sbHMuU2Nyb2xsOwppbXBvcnQgY29tLnNoYXR0ZXJlZHBpeGVsLnNoYXR0ZXJlZHBpeGVsZHVuZ2Vvbi5pdGVtcy5zY3JvbGxzLlNjcm9sbE9mVXBncmFkZTsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uaXRlbXMuc2Nyb2xscy5leG90aWMuU2Nyb2xsT2ZFbmNoYW50bWVudDsKaW1wb3J0IGNvbS5zaGF0dGVyZWRwaXhlbC5zaGF0dGVyZWRwaXhlbGR1bmdlb24uc3ByaXRlcy5JdGVtU3ByaXRlU2hlZXQ7CgppbXBvcnQgamF2YS51dGlsLkFycmF5TGlzdDsKCnB1YmxpYyBjbGFzcyBFbmRsZXNzU2Nyb2xsIGV4dGVuZHMgSXRlbSB7CgogICAgcHVibGljIHN0YXRpYyBmaW5hbCBTdHJpbmcgQUNfVVBHUkFERSA9ICJVUEdSQURFIjsKICAgIHB1YmxpYyBzdGF0aWMgZmluYWwgU3RyaW5nIEFDX0VOQ0hBTlQgPSAiRU5DSEFOVCI7CgogICAgewogICAgICAgIGltYWdlID0gSXRlbVNwcml0ZVNoZWV0LlNDUk9MTF9LQVVOQU47CiAgICAgICAgc3RhY2thYmxlID0gZmFsc2U7CiAgICAgICAgdW5pcXVlID0gdHJ1ZTsKICAgICAgICBib25lcyA9IGZhbHNlOwogICAgICAgIGRlZmF1bHRBY3Rpb24gPSBBQ19VUEdSQURFOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIEFycmF5TGlzdDxTdHJpbmc+IGFjdGlvbnMoSGVybyBoZXJvKSB7CiAgICAgICAgQXJyYXlMaXN0PFN0cmluZz4gYWN0aW9ucyA9IHN1cGVyLmFjdGlvbnMoaGVybyk7CiAgICAgICAgYWN0aW9ucy5hZGQoQUNfVVBHUkFERSk7CiAgICAgICAgYWN0aW9ucy5hZGQoQUNfRU5DSEFOVCk7CiAgICAgICAgcmV0dXJuIGFjdGlvbnM7CiAgICB9CgogICAgQE92ZXJyaWRlCiAgICBwdWJsaWMgU3RyaW5nIGFjdGlvbk5hbWUoU3RyaW5nIGFjdGlvbiwgSGVybyBoZXJvKSB7CiAgICAgICAgaWYgKEFDX1VQR1JBREUuZXF1YWxzKGFjdGlvbikpIHJldHVybiAiVVBHUkFERSI7CiAgICAgICAgaWYgKEFDX0VOQ0hBTlQuZXF1YWxzKGFjdGlvbikpIHJldHVybiAiRU5DSEFOVCI7CiAgICAgICAgcmV0dXJuIHN1cGVyLmFjdGlvbk5hbWUoYWN0aW9uLCBoZXJvKTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyB2b2lkIGV4ZWN1dGUoSGVybyBoZXJvLCBTdHJpbmcgYWN0aW9uKSB7CiAgICAgICAgc3VwZXIuZXhlY3V0ZShoZXJvLCBhY3Rpb24pOwoKICAgICAgICBpZiAoQUNfVVBHUkFERS5lcXVhbHMoYWN0aW9uKSkgewogICAgICAgICAgICBTY3JvbGxPZlVwZ3JhZGUgaGVscGVyID0gbmV3IFNjcm9sbE9mVXBncmFkZSgpOwogICAgICAgICAgICBoZWxwZXIuYW5vbnltaXplKCk7CiAgICAgICAgICAgIGhlbHBlci5leGVjdXRlKGhlcm8sIFNjcm9sbC5BQ19SRUFEKTsKICAgICAgICB9IGVsc2UgaWYgKEFDX0VOQ0hBTlQuZXF1YWxzKGFjdGlvbikpIHsKICAgICAgICAgICAgU2Nyb2xsT2ZFbmNoYW50bWVudCBoZWxwZXIgPSBuZXcgU2Nyb2xsT2ZFbmNoYW50bWVudCgpOwogICAgICAgICAgICBoZWxwZXIuYW5vbnltaXplKCk7CiAgICAgICAgICAgIGhlbHBlci5leGVjdXRlKGhlcm8sIFNjcm9sbC5BQ19SRUFEKTsKICAgICAgICB9CiAgICB9CgogICAgQE92ZXJyaWRlCiAgICBwdWJsaWMgU3RyaW5nIG5hbWUoKSB7CiAgICAgICAgcmV0dXJuICJwZXJwZXR1YWwgc2Nyb2xsIG9mIGFydGlmaWNlIjsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyBTdHJpbmcgZGVzYygpIHsKICAgICAgICByZXR1cm4gIkEgc2VsZi1yZXN0b3Jpbmcgc2Nyb2xsIHdvdmVuIGZyb20gdXBncmFkZSBhbmQgZW5jaGFudG1lbnQgbWFnaWMuIFVQR1JBREUgaW1wcm92ZXMgYSBjaG9zZW4gaXRlbSBieSBvbmUgbGV2ZWwgdXNpbmcgdGhlIG5vcm1hbCB1cGdyYWRlIHJ1bGVzLiBFTkNIQU5UIG9wZW5zIHRoZSBub3JtYWwgZW5jaGFudG1lbnQgc2VsZWN0aW9uIGZvciBhIGNvbXBhdGlibGUgd2VhcG9uIG9yIGFybW9yLiBUaGUgc2Nyb2xsIGl0c2VsZiBpcyBuZXZlciBjb25zdW1lZC4iOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIGJvb2xlYW4gaXNJZGVudGlmaWVkKCkgewogICAgICAgIHJldHVybiB0cnVlOwogICAgfQoKICAgIEBPdmVycmlkZQogICAgcHVibGljIGJvb2xlYW4gaXNVcGdyYWRhYmxlKCkgewogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyBib29sZWFuIGtlcHRUaHJvdWdoTG9zdEludmVudG9yeSgpIHsKICAgICAgICByZXR1cm4gdHJ1ZTsKICAgIH0KCiAgICBAT3ZlcnJpZGUKICAgIHB1YmxpYyBpbnQgdmFsdWUoKSB7CiAgICAgICAgcmV0dXJuIDA7CiAgICB9Cn0K
+        run: |
+          mkdir -p game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/custom
+          printf '%s' "$PROVISION_B64" | base64 -d > game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/custom/EndlessProvision.java
+          printf '%s' "$SCROLL_B64" | base64 -d > game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/custom/EndlessScroll.java
+          python3 - <<'PY_PATCH'
+          from pathlib import Path
+          p = Path('game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/HeroClass.java')
+          s = p.read_text()
+          import_anchor = 'import com.shatteredpixel.shatteredpixeldungeon.items.Item;\n'
+          imports = (import_anchor
+                     + 'import com.shatteredpixel.shatteredpixeldungeon.items.custom.EndlessProvision;\n'
+                     + 'import com.shatteredpixel.shatteredpixeldungeon.items.custom.EndlessScroll;\n')
+          if import_anchor not in s:
+              raise SystemExit('HeroClass import anchor not found')
+          s = s.replace(import_anchor, imports, 1)
+          old = '\t\t\ti = new Food();\n\t\t\tif (!Challenges.isItemBlocked(i)) i.collect();'
+          new = ('\t\t\ti = new EndlessProvision();\n'
+                 '\t\t\tif (!Challenges.isItemBlocked(i)) i.collect();\n'
+                 '\t\t\tnew EndlessScroll().collect();')
+          if old not in s:
+              raise SystemExit('Starting food block not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY_PATCH
+
+      - name: Create a one-off release signing key
+        run: |
+          keytool -genkeypair -noprompt \
+            -keystore /tmp/rere-mod.keystore \
+            -storepass android \
+            -keypass android \
+            -alias rere_mod \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Re-ReARPD Custom Build, OU=Local Mod, O=Local Mod, L=Local, ST=Local, C=US"
+          printf '%s\n' \
+            'REARRANGED_STORE_FILE=/tmp/rere-mod.keystore' \
+            'REARRANGED_STORE_PASSWORD=android' \
+            'REARRANGED_KEY_ALIAS=rere_mod' \
+            'REARRANGED_KEY_PASSWORD=android' >> game/gradle.properties
+
+      - name: Build signed release APK
+        working-directory: game
+        run: |
+          chmod +x gradlew
+          ./gradlew android:assembleRelease --stacktrace
+
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          APK="$(find game/android/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          cp "$APK" out/Re-ReARPD-v3.47.0-Infinite-Items.apk
+          sha256sum out/Re-ReARPD-v3.47.0-Infinite-Items.apk | tee out/SHA256.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Re-ReARPD-v3.47.0-Infinite-Items
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
