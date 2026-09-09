@@ -66,44 +66,38 @@ jobs:
               s = s.replace(old, new, 1)
 
               anchor = '    @Override\n    public String name() {'
-              safety = f'''    @Override
-    public void doDrop(Hero hero) {{
-        // Intentionally impossible to drop.
-    }}
-
-    @Override
-    public void doThrow(Hero hero) {{
-        // Intentionally impossible to throw.
-    }}
-
-    @Override
-    protected void onThrow(int cell) {{
-        // Secondary guard in case a throw path is invoked directly.
-    }}
-
-    @Override
-    public boolean collect(com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag container) {{
-        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null) {{
-            Item existing = com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class);
-            if (existing != null && existing != this) {{
-                // A replacement already exists; treat this copy as collected without duplicating it.
-                return true;
-            }}
-        }}
-        return super.collect(container);
-    }}
-
-    @Override
-    protected void onDetach() {{
-        super.onDetach();
-        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null
-                && com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class) == null) {{
-            // Any forced removal immediately creates a fresh replacement in the hero's inventory.
-            new {cls}().collect();
-        }}
-    }}
-
-'''
+              safety = (
+                  '    @Override\n'
+                  '    public void doDrop(Hero hero) {\n'
+                  '        // Intentionally impossible to drop.\n'
+                  '    }\n\n'
+                  '    @Override\n'
+                  '    public void doThrow(Hero hero) {\n'
+                  '        // Intentionally impossible to throw.\n'
+                  '    }\n\n'
+                  '    @Override\n'
+                  '    protected void onThrow(int cell) {\n'
+                  '        // Secondary guard in case a throw path is invoked directly.\n'
+                  '    }\n\n'
+                  '    @Override\n'
+                  '    public boolean collect(com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag container) {\n'
+                  '        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null) {\n'
+                  f'            Item existing = com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class);\n'
+                  '            if (existing != null && existing != this) {\n'
+                  '                return true;\n'
+                  '            }\n'
+                  '        }\n'
+                  '        return super.collect(container);\n'
+                  '    }\n\n'
+                  '    @Override\n'
+                  '    protected void onDetach() {\n'
+                  '        super.onDetach();\n'
+                  '        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null\n'
+                  f'                && com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class) == null) {{\n'
+                  f'            new {cls}().collect();\n'
+                  '        }\n'
+                  '    }\n\n'
+              )
               if anchor not in s:
                   raise SystemExit(f'Name anchor not found in {path.name}')
               s = s.replace(anchor, safety + anchor, 1)
@@ -112,7 +106,6 @@ jobs:
           harden(provision, 'EndlessProvision', 'AC_RESTORE', 'AC_EMPOWER')
           harden(scroll, 'EndlessScroll', 'AC_UPGRADE', 'AC_ENCHANT')
 
-          # Add both items to every class through the common class initialization path.
           p = Path('game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/HeroClass.java')
           s = p.read_text()
           import_anchor = 'import com.shatteredpixel.shatteredpixeldungeon.items.Item;\n'
