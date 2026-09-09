@@ -1,0 +1,187 @@
+name: Build Re-ReARPD Infinite Items APK v3
+
+on:
+  push:
+    branches:
+      - chatgpt-rerere-apk-build
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out runner repo
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clone exact Re-ReARranged v3.47.0 source
+        run: |
+          git clone --depth 1 --branch v3.47.0 https://github.com/ek-mk8034/Re-Re-ARranged-pixel-dungeon.git game
+
+      - name: Recreate and harden the two infinite items
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+
+          wf = Path('.github/workflows/build-rerere-infinite-items-v2.yml').read_text()
+          vals = {}
+          for line in wf.splitlines():
+              stripped = line.strip()
+              for key in ('PROVISION_B64', 'SCROLL_B64'):
+                  prefix = key + ':'
+                  if stripped.startswith(prefix):
+                      vals[key] = stripped.split(':', 1)[1].strip()
+          if set(vals) != {'PROVISION_B64', 'SCROLL_B64'}:
+              raise SystemExit('Could not recover prior custom item sources')
+
+          out = Path('game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/items/custom')
+          out.mkdir(parents=True, exist_ok=True)
+          provision = out / 'EndlessProvision.java'
+          scroll = out / 'EndlessScroll.java'
+          provision.write_bytes(base64.b64decode(vals['PROVISION_B64']))
+          scroll.write_bytes(base64.b64decode(vals['SCROLL_B64']))
+
+          def harden(path, cls, first_action, second_action):
+              s = path.read_text()
+              old = ('        ArrayList<String> actions = super.actions(hero);\n'
+                     f'        actions.add({first_action});\n'
+                     f'        actions.add({second_action});')
+              new = ('        ArrayList<String> actions = new ArrayList<>();\n'
+                     f'        actions.add({first_action});\n'
+                     f'        actions.add({second_action});')
+              if old not in s:
+                  raise SystemExit(f'Actions block not found in {path.name}')
+              s = s.replace(old, new, 1)
+
+              anchor = '    @Override\n    public String name() {'
+              safety = f'''    @Override
+    public void doDrop(Hero hero) {{
+        // Intentionally impossible to drop.
+    }}
+
+    @Override
+    public void doThrow(Hero hero) {{
+        // Intentionally impossible to throw.
+    }}
+
+    @Override
+    protected void onThrow(int cell) {{
+        // Secondary guard in case a throw path is invoked directly.
+    }}
+
+    @Override
+    public boolean collect(com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag container) {{
+        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null) {{
+            Item existing = com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class);
+            if (existing != null && existing != this) {{
+                // A replacement already exists; treat this copy as collected without duplicating it.
+                return true;
+            }}
+        }}
+        return super.collect(container);
+    }}
+
+    @Override
+    protected void onDetach() {{
+        super.onDetach();
+        if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null
+                && com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.getItem({cls}.class) == null) {{
+            // Any forced removal immediately creates a fresh replacement in the hero's inventory.
+            new {cls}().collect();
+        }}
+    }}
+
+'''
+              if anchor not in s:
+                  raise SystemExit(f'Name anchor not found in {path.name}')
+              s = s.replace(anchor, safety + anchor, 1)
+              path.write_text(s)
+
+          harden(provision, 'EndlessProvision', 'AC_RESTORE', 'AC_EMPOWER')
+          harden(scroll, 'EndlessScroll', 'AC_UPGRADE', 'AC_ENCHANT')
+
+          # Add both items to every class through the common class initialization path.
+          p = Path('game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/HeroClass.java')
+          s = p.read_text()
+          import_anchor = 'import com.shatteredpixel.shatteredpixeldungeon.items.Item;\n'
+          imports = (import_anchor
+                     + 'import com.shatteredpixel.shatteredpixeldungeon.items.custom.EndlessProvision;\n'
+                     + 'import com.shatteredpixel.shatteredpixeldungeon.items.custom.EndlessScroll;\n')
+          if import_anchor not in s:
+              raise SystemExit('HeroClass import anchor not found')
+          s = s.replace(import_anchor, imports, 1)
+          old = '\t\t\ti = new Food();\n\t\t\tif (!Challenges.isItemBlocked(i)) i.collect();'
+          new = ('\t\t\ti = new EndlessProvision();\n'
+                 '\t\t\tif (!Challenges.isItemBlocked(i)) i.collect();\n'
+                 '\t\t\tnew EndlessScroll().collect();')
+          if old not in s:
+              raise SystemExit('Starting food block not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
+      - name: Fix upstream Linux build quirks
+        run: |
+          SRC=game/core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/blessings
+          if [ -f "$SRC/clericTempleBlessing.java" ]; then
+            mv "$SRC/clericTempleBlessing.java" "$SRC/ClericTempleBlessing.java"
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('game/android/build.gradle')
+          s = p.read_text()
+          old = 'implementation "com.google.android.gms:play-services-games-v2:+"'
+          new = 'implementation "com.google.android.gms:play-services-games-v2:20.1.2"'
+          if old not in s:
+              raise SystemExit('Play Games dependency anchor not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+      - name: Create a one-off release signing key
+        run: |
+          keytool -genkeypair -noprompt \
+            -keystore /tmp/rere-mod.keystore \
+            -storepass android \
+            -keypass android \
+            -alias rere_mod \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Re-ReARPD Custom Build, OU=Local Mod, O=Local Mod, L=Local, ST=Local, C=US"
+          printf '%s\n' \
+            'REARRANGED_STORE_FILE=/tmp/rere-mod.keystore' \
+            'REARRANGED_STORE_PASSWORD=android' \
+            'REARRANGED_KEY_ALIAS=rere_mod' \
+            'REARRANGED_KEY_PASSWORD=android' >> game/gradle.properties
+
+      - name: Build signed release APK
+        working-directory: game
+        run: |
+          chmod +x gradlew
+          ./gradlew android:assembleRelease --stacktrace
+
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          APK="$(find game/android/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          cp "$APK" out/Re-ReARPD-v3.47.0-Infinite-Items-Hardened.apk
+          sha256sum out/Re-ReARPD-v3.47.0-Infinite-Items-Hardened.apk | tee out/SHA256.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Re-ReARPD-v3.47.0-Infinite-Items-Hardened
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
